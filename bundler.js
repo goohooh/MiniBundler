@@ -65,11 +65,28 @@ function bundle(graph) {
             function (require, module, exports) {
                 ${mod.code}
             },
+            ${JSON.stringify(mod.mapping)}
         ],`;
     })
 
     const result = `
-        (function() {})({
+        (function(modules) {
+            function require(id) {
+                const [fn, mapping] = modules[id];
+                
+                function localRequire(relativePath){
+                    return require(mapping[relativePath]);
+                }
+
+                const module = { exports: {} }
+
+                fn(localRequire, module, module.exports);
+
+                return module.exports;
+            }
+
+            require(0);
+        })({
             ${modules}
         })
     `;
